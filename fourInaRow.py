@@ -35,7 +35,7 @@ class Starter(PygameHelper):
         self.turn = 9
         self.move = 0
         self.free_space = 0
-        self.pulls = [[0]*len(COLUMNS)]*len(ROWS)
+        self.pulls = [[0 for y in range(len(COLUMNS))] for x in range(len(ROWS))]
 
         self.Surface = pygame.display.set_mode((self.w, self.h))
 
@@ -47,34 +47,36 @@ class Starter(PygameHelper):
         self.yellow_pull = pygame.image.load(os.path.join("pics", "yellow_pull.png"))
         
     def update(self):
-        if self.move == 1 and self.free_space == 1:
-            self.pulls[self.row][self.col] = self.turn
-            print(self.pulls[self.row])
-            self.move = 0
-            print(self.pulls)
+        pass
 
     def keyUp(self, key):
         pass
         
     def mouseUp(self, button, pos):
         x, y = pos[0], pos[1]
-        
-        for column in COLUMNS:
-            if column < x < column + STEP and button == 1:
-                self.col = COLUMNS.index(column)
-                print("selected col index:", self.col)
-                self.move = 1
+        self.free_space = 0
+        self.move = 0
 
-        for r in self.pulls:
-            if r[self.col] > 0:
-                if self.pulls.index(r) != 0:
-                    self.row = self.pulls.index(r) - 1
-                    self.free_space = 1
-
-                else:
-                    self.row = 5
-            print("selected row index:", self.row)
-
+        if button == 1:
+            for column in COLUMNS:
+                if column < x < column + STEP:
+                    self.col = COLUMNS.index(column)
+                    print("click col index:", self.col)
+                    self.move = 1
+                    break
+            if self.move == 1:
+                for each_row in self.pulls:
+                    if each_row[self.col] == 0:
+                        self.free_space += 1
+                print("free space: ", self.free_space)
+                if self.free_space > 0:
+                    self.row = self.free_space - 1
+                    print("click row index:", self.row)
+                    self.pulls[self.row][self.col] = 1
+                    print("Board:")
+                    print(self.pulls)
+                    
+                    
 
     def mouseMotion(self, buttons, pos, rel):
         x, y = pos[0], pos[1]
