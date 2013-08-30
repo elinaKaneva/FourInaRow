@@ -37,8 +37,7 @@ class Starter(PygameHelper):
         self.free_space = 0
         self.moving_Y = 0
 
-        self.result_red = 0
-        self.result_yellow = 0
+        self.winner = 0
         
         self.pulls = [[0 for y in range(len(COLUMNS))] for x in range(len(ROWS))]
         self.Surface = pygame.display.set_mode((self.w, self.h))
@@ -56,16 +55,36 @@ class Starter(PygameHelper):
         self.player = [self.empty, self.red_pull, self.yellow_pull]
 
     def check_win(self):
-        for y in range(len(ROWS)):
-            self.win_red = 0
-            self.win_yellow = 0
-            for x in range(len(COLUMNS)):
-                if x - 2 + y == 1:
+        '''
+        for c in range(len(ROWS)):
+            self.result_red = 0
+            self.result_yellow = 0
+            for x in range(2,9):
+                y = x - 2 + c
+                if self.pulls[x][y] == 1:
                     self.result_red += 1
-                elif x - 2 + y == 2:
+                elif self.pulls[x][y] == 2:
                     self.result_yellow += 1
-        print("result red: ", self.result_red)
-        print("result yellow: ", self.result_yellow)
+        '''
+        for each_row in self.pulls:
+            if self.winner == 0:
+                count_red = 0
+                count_yellow = 0
+                if sum(each_row) > 3:
+                    for each_pull in each_row:
+                        if each_pull == 1:
+                            count_red += 1
+                        elif each_pull == 2:
+                            count_yellow += 1
+                
+                if count_red > 3 or count_yellow > 3:
+                    for i, pull in enumerate(each_row[0:4]):
+                        if pull > 0:
+                            if pull == each_row[i + 1] == each_row[i + 2] == each_row[i + 3]:
+                                self.winner = pull
+                                break
+
+        print("winner: ", self.winner)
 
     def update(self):
         while self.moving_Y < ROWS[self.row]:
@@ -84,7 +103,7 @@ class Starter(PygameHelper):
             for column in COLUMNS:
                 if column < x < column + STEP:
                     self.col = COLUMNS.index(column)
-                    print("click col index:", self.col)
+                    print("col index:", self.col)
                     self.move = 1
                     break
             if self.move == 1:
@@ -94,7 +113,7 @@ class Starter(PygameHelper):
                 print("free space: ", self.free_space)
                 if self.free_space > 0:
                     self.row = self.free_space - 1
-                    print("click row index:", self.row)
+                    print("row index:", self.row)
                     self.pulls[self.row][self.col] = 1 + self.turn
                     print("Board:")
                     print(self.pulls)
