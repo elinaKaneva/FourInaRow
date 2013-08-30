@@ -38,6 +38,7 @@ class Starter(PygameHelper):
         self.moving_Y = 0
 
         self.winner = 0
+        self.game_status = 1
         
         self.pulls = [[0 for y in range(len(COLUMNS))] for x in range(len(ROWS))]
         self.Surface = pygame.display.set_mode((self.w, self.h))
@@ -68,23 +69,42 @@ class Starter(PygameHelper):
         '''
         for each_row in self.pulls:
             if self.winner == 0:
-                count_red = 0
-                count_yellow = 0
-                if sum(each_row) > 3:
-                    for each_pull in each_row:
-                        if each_pull == 1:
-                            count_red += 1
-                        elif each_pull == 2:
-                            count_yellow += 1
-                
-                if count_red > 3 or count_yellow > 3:
-                    for i, pull in enumerate(each_row[0:4]):
-                        if pull > 0:
-                            if pull == each_row[i + 1] == each_row[i + 2] == each_row[i + 3]:
-                                self.winner = pull
-                                break
+                for i, pull in enumerate(each_row[:4]):
+                    if pull > 0:
+                        if pull == each_row[i + 1] == each_row[i + 2] == each_row[i + 3]:
+                            self.winner = pull
+                            break
+
+        for row in range(3):
+            if self.winner == 0:
+                for col in range(7):
+                    if self.pulls[row][col] > 0:
+                        if self.pulls[row][col] == self.pulls[row + 1][col] == self.pulls[row + 2][col] == self.pulls[row + 3][col]:
+                            self.winner = self.pulls[row][col]
+                            break
+
+        for c in range(6):
+            if self.winner == 0:
+                for x in range(3):
+                    if self.winner == 0:
+                        for y in range(4):
+                            if y == x + 2 - c:
+                                if self.pulls[x][y] and (self.pulls[x][y] == self.pulls[x + 1][y + 1] == self.pulls[x + 2][y + 2] == self.pulls[x + 3][y + 3]):
+                                    self.winner = self.pulls[x][y]
+                                    break
+
+        for c in range(6):
+            if self.winner == 0:
+                for x in range(3,6):
+                    if self.winner == 0:
+                        for y in range(4):
+                            if y == 8 - x - c:
+                                if self.pulls[x][y] and (self.pulls[x][y] == self.pulls[x - 1][y + 1] == self.pulls[x - 2][y + 2] == self.pulls[x - 3][y + 3]):
+                                    self.winner = self.pulls[x][y]
+                                    break
 
         print("winner: ", self.winner)
+        print("_____________________")
 
     def update(self):
         while self.moving_Y < ROWS[self.row]:
@@ -96,7 +116,7 @@ class Starter(PygameHelper):
     def mouseUp(self, button, pos):
         x, y = pos[0], pos[1]
 
-        if button == 1:
+        if button == 1 and self.game_status == 1:
             self.moving_Y = BOARD[1] - STEP
             self.move = 0
             self.free_space = 0
@@ -121,11 +141,13 @@ class Starter(PygameHelper):
                     self.turn = not(self.turn)
                     self.done = 1
                 self.check_win()
+                if self.winner:
+                    self.game_status = 2
 
     def mouseMotion(self, buttons, pos, rel):
         x, y = pos[0], pos[1]
         
-        if x in range(BOARD[0],BOARD[0] + len(COLUMNS) * STEP):
+        if self.game_status == 1 and x in range(BOARD[0],BOARD[0] + len(COLUMNS) * STEP):
             self.header = 1
             for column in COLUMNS:
                 if column < x < column + STEP:
@@ -137,17 +159,22 @@ class Starter(PygameHelper):
     def draw(self):
         self.screen.fill(NICE_BLUE)
         self.screen.blit(self.below_board, BOARD)
-        
-        if self.header == 1 and sum([sum(pull) for pull in self.pulls]) < BOARD_CAPACITY:
-            self.screen.blit(self.player_header[self.turn], (BOARD[0] + self.head_column * STEP, BOARD[1] - STEP))
 
-        if self.move == 1:
-            self.screen.blit(self.player_falling[self.turn], (BOARD[0] + self.col * STEP, self.moving_Y))
+        if self.game_status == 1:
+            if self.header == 1 and sum([sum(pull) for pull in self.pulls]) < BOARD_CAPACITY:
+                self.screen.blit(self.player_header[self.turn], (BOARD[0] + self.head_column * STEP, BOARD[1] - STEP))
+
+            if self.move == 1:
+                self.screen.blit(self.player_falling[self.turn], (BOARD[0] + self.col * STEP, self.moving_Y))
 
         for col in range(len(COLUMNS)):
             for row in range(len(ROWS)):
                 if self.pulls[row][col] > 0:
                     self.screen.blit(self.player[self.pulls[row][col]], (COLUMNS[col], ROWS[row]))
+
+        if self.game_status == 2:
+            pass
+
         self.screen.blit(self.board, BOARD)
         
 s = Starter()
